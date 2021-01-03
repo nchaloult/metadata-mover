@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::fs;
 use std::path::Path;
 
 use id3::{Tag, Version};
@@ -31,10 +32,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 fn move_artist_to_metadata(filepath_as_string: &String) -> Result<(), &'static str> {
-    // TODO: Parse artist name from file name.
-    // TODO: Remove artist name from file name.
-    // TODO: Write/overwrite the artist metadata tag.
-
     let path = Path::new(filepath_as_string);
     let filename = path.file_stem().unwrap().to_str();
     match filename {
@@ -49,6 +46,21 @@ fn move_artist_to_metadata(filepath_as_string: &String) -> Result<(), &'static s
             let result = tag.write_to_path(filepath_as_string, Version::Id3v24);
             if result.is_err() {
                 return Err("failed to write artist tag to path");
+            }
+
+            let song_name = &name[(divider + 2)..];
+            let path_stem = path.parent().unwrap().to_str();
+            match path_stem {
+                None => return Err("failed to extract parent stem from file path"),
+                Some(stem) => {
+                    // TODO: Fix hard-coded extension.
+                    let path_without_artist_str = stem.to_owned() + song_name + ".mp3";
+                    let path_without_artist = Path::new(&path_without_artist_str);
+                    let rename_result = fs::rename(filepath_as_string, path_without_artist);
+                    if rename_result.is_err() {
+                        return Err("failed to remove artist name from file");
+                    }
+                },
             }
         },
     }
