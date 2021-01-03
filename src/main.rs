@@ -1,9 +1,17 @@
-use id3::{Tag, Version};
+use std::env;
+use std::process;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut artist_tag = Tag::new();
-    artist_tag.set_artist("Me Smile");
+use metadatamover::Config;
 
-    artist_tag.write_to_path("song.mp3", Version::Id3v24)?;
-    Ok(())
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+    if let Err(e) = metadatamover::run(config) {
+        eprintln!("ERROR: {}", e);
+        process::exit(1);
+    }
 }
