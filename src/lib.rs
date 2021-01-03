@@ -1,4 +1,7 @@
 use std::error::Error;
+use std::path::Path;
+
+use id3::{Tag, Version};
 
 pub struct Config {
     pub filepaths: Vec<String>,
@@ -27,12 +30,28 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn move_artist_to_metadata(filepath: &String) -> Result<(), Box<dyn Error>> {
+fn move_artist_to_metadata(filepath_as_string: &String) -> Result<(), &'static str> {
     // TODO: Parse artist name from file name.
     // TODO: Remove artist name from file name.
     // TODO: Write/overwrite the artist metadata tag.
 
-    println!("{}", filepath);
+    let path = Path::new(filepath_as_string);
+    let filename = path.file_stem().unwrap().to_str();
+    match filename {
+        None => return Err("failed to parse file name from path"),
+        Some(name) => {
+            let divider = name.find('-').unwrap();
+            let artist_name = &name[..(divider - 1)];
+
+            // TODO: This should all really be in its own function.
+            let mut tag = Tag::new();
+            tag.set_artist(artist_name);
+            let result = tag.write_to_path(filepath_as_string, Version::Id3v24);
+            if result.is_err() {
+                return Err("failed to write artist tag to path");
+            }
+        },
+    }
 
     Ok(())
 }
