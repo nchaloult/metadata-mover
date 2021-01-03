@@ -13,6 +13,8 @@ impl Config {
         let mut filepaths = vec![String::new(); args.len() - 1];
         filepaths.clone_from_slice(&args[1..]);
 
+        // TODO: validate each file path.
+
         Ok(Config { filepaths })
     }
 }
