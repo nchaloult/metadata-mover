@@ -21,9 +21,18 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     for path in config.filepaths {
-        // TODO: call some function to perform the metadata swap/rewrite.
-        println!("{}", path);
+        move_artist_to_metadata(&path)?;
     }
+
+    Ok(())
+}
+
+fn move_artist_to_metadata(filepath: &String) -> Result<(), Box<dyn Error>> {
+    // TODO: Parse artist name from file name.
+    // TODO: Remove artist name from file name.
+    // TODO: Write/overwrite the artist metadata tag.
+
+    println!("{}", filepath);
 
     Ok(())
 }
