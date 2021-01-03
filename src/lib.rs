@@ -1,3 +1,5 @@
+use std::error::Error;
+
 pub struct Config {
     pub filepaths: Vec<String>,
 }
@@ -13,4 +15,13 @@ impl Config {
 
         Ok(Config { filepaths })
     }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    for path in config.filepaths {
+        // TODO: call some function to perform the metadata swap/rewrite.
+        println!("{}", path);
+    }
+
+    Ok(())
 }
