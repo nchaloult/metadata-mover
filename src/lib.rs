@@ -54,7 +54,7 @@ fn move_artist_to_metadata(filepath_as_string: &String) -> Result<(), &'static s
                 None => return Err("failed to extract parent stem from file path"),
                 Some(stem) => {
                     // TODO: Fix hard-coded extension.
-                    let path_without_artist_str = stem.to_owned() + song_name + ".mp3";
+                    let path_without_artist_str = stem.to_owned() + "/" + song_name + ".mp3";
                     let path_without_artist = Path::new(&path_without_artist_str);
                     let rename_result = fs::rename(filepath_as_string, path_without_artist);
                     if rename_result.is_err() {
