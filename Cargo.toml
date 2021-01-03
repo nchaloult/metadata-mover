@@ -1,5 +1,5 @@
 [package]
-name = "metadata-mover"
+name = "metadatamover"
 version = "0.1.0"
 authors = ["Nick Chaloult <npchaloult@gmail.com>"]
 edition = "2018"
