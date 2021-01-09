@@ -25,45 +25,84 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     for path in config.filepaths {
+        // move_artist_to_metadata(&path)?;
         move_artist_to_metadata(&path)?;
     }
 
     Ok(())
 }
 
-fn move_artist_to_metadata(filepath_as_string: &String) -> Result<(), &'static str> {
-    let path = Path::new(filepath_as_string);
-    let filename = path.file_stem().unwrap().to_str();
-    match filename {
-        None => return Err("failed to parse file name from path"),
-        Some(name) => {
-            let divider = name.find('-').unwrap();
-            let artist_name = &name[..(divider - 1)];
+fn move_artist_to_metadata(filepath_str: &String) -> Result<(), &'static str> {
+    let path = Path::new(filepath_str);
+    let filename = match path.file_stem() {
+        Some(filename) => filename,
+        None => {
+            let path_str = path.to_str().unwrap_or("file path");
 
-            // TODO: This should all really be in its own function.
-            let mut tag = Tag::new();
-            tag.set_artist(artist_name);
-            let result = tag.write_to_path(filepath_as_string, Version::Id3v24);
-            if result.is_err() {
-                return Err("failed to write artist tag to path");
-            }
+            // TODO: redundant, but I'm not sure how to include this info in
+            // a &'static str that we return as an error.
+            println!("Cannot parse file name from {}!", path_str);
 
-            let song_name = &name[(divider + 2)..];
-            let path_stem = path.parent().unwrap().to_str();
-            match path_stem {
-                None => return Err("failed to extract parent stem from file path"),
-                Some(stem) => {
-                    // TODO: Fix hard-coded extension.
-                    let path_without_artist_str = stem.to_owned() + "/" + song_name + ".mp3";
-                    let path_without_artist = Path::new(&path_without_artist_str);
-                    let rename_result = fs::rename(filepath_as_string, path_without_artist);
-                    if rename_result.is_err() {
-                        return Err("failed to remove artist name from file");
-                    }
-                },
-            }
+            return Err("failed to parse file name from file path");
         },
-    }
+    };
 
+    let filename_str = match filename.to_str() {
+        Some(result) => result,
+        // TODO: this isn't such a user-friendly error message....
+        None => return Err("failed to convert file name into string"),
+    };
+
+    let divider_idx = match filename_str.find("-") {
+        Some(idx) => idx,
+        None => return Err("file name does not contain \"-\" separator"),
+    };
+    let artist_name = &filename_str[..(divider_idx - 1)];
+
+    set_artist_metadata_tag(&filepath_str, &artist_name)?;
+    remove_artist_name_from_file_name(
+        path, filepath_str, filename_str, divider_idx
+    )?;
+
+    Ok(())
+}
+
+fn set_artist_metadata_tag(
+    filepath: &str,
+    artist_name: &str,
+) -> Result<(), &'static str> {
+    let mut tag = Tag::new();
+    tag.set_artist(artist_name);
+
+    if let Err(e) = tag.write_to_path(filepath, Version::Id3v24) {
+        println!("problem with filepath {}: {}", filepath, e);
+        return Err("failed to write artist tag to mp3");
+    }
+    Ok(())
+}
+
+fn remove_artist_name_from_file_name(
+    filepath: &Path,
+    filepath_str: &str,
+    filename_str: &str,
+    divider_idx: usize,
+) -> Result<(), &'static str> {
+    let song_name = &filename_str[(divider_idx + 2)..];
+    // Guaranteed to be fine since we've already unwrapped this path's file
+    // stem.
+    let path_parent_str = match filepath.parent().unwrap().to_str() {
+        Some(result) => result,
+        // TODO: this isn't such a user-friendly error message....
+        None => return Err("failed to convert file path parent into string"),
+    };
+    // TODO: fix hard-coded file extension (even tho this program can only work
+    // mp3s).
+    let path_without_artist_str = path_parent_str.to_owned() + "/"
+        + song_name + ".mp3";
+    let path_without_artist = Path::new(&path_without_artist_str);
+
+    if let Err(_) = fs::rename(filepath_str, path_without_artist) {
+        return Err("failed to remove artist name from mp3 file name")
+    }
     Ok(())
 }
