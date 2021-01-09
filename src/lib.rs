@@ -29,6 +29,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         move_artist_to_metadata(&path)?;
     }
 
+    println!("All finished!");
     Ok(())
 }
 
