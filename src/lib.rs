@@ -35,18 +35,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 fn move_artist_to_metadata(filepath_str: &String) -> Result<(), &'static str> {
     let path = Path::new(filepath_str);
-    let filename = match path.file_stem() {
-        Some(filename) => filename,
-        None => {
-            let path_str = path.to_str().unwrap_or("file path");
-
-            // TODO: redundant, but I'm not sure how to include this info in
-            // a &'static str that we return as an error.
-            println!("Cannot parse file name from {}!", path_str);
-
-            return Err("failed to parse file name from file path");
-        },
-    };
+    let filename = path.file_stem().ok_or("failed to parse file name from \
+                                          file path")?;
 
     let filename_str = match filename.to_str() {
         Some(result) => result,
