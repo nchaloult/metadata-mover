@@ -38,11 +38,9 @@ fn move_artist_to_metadata(filepath_str: &String) -> Result<(), &'static str> {
     let filename = path.file_stem().ok_or("failed to parse file name from \
                                           file path")?;
 
-    let filename_str = match filename.to_str() {
-        Some(result) => result,
-        // TODO: this isn't such a user-friendly error message....
-        None => return Err("failed to convert file name into string"),
-    };
+    // TODO: this isn't such a user-friendly error message...
+    let filename_str = filename.to_str().ok_or("failed to convert file name \
+                                               into string")?;
 
     let divider_idx = match filename_str.find("-") {
         Some(idx) => idx,
