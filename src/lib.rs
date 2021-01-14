@@ -42,10 +42,8 @@ fn move_artist_to_metadata(filepath_str: &String) -> Result<(), &'static str> {
     let filename_str = filename.to_str().ok_or("failed to convert file name \
                                                into string")?;
 
-    let divider_idx = match filename_str.find("-") {
-        Some(idx) => idx,
-        None => return Err("file name does not contain \"-\" separator"),
-    };
+    let divider_idx = filename_str.find("-").ok_or("file name does not \
+        contain \"-\" separator")?;
     let artist_name = &filename_str[..(divider_idx - 1)];
 
     set_artist_metadata_tag(&filepath_str, &artist_name)?;
