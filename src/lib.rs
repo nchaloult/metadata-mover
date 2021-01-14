@@ -36,11 +36,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 fn move_artist_to_metadata(filepath_str: &String) -> Result<(), &'static str> {
     let path = Path::new(filepath_str);
     let filename = path.file_stem().ok_or("failed to parse file name from \
-                                          file path")?;
+        file path")?;
 
     // TODO: this isn't such a user-friendly error message...
     let filename_str = filename.to_str().ok_or("failed to convert file name \
-                                               into string")?;
+        into string")?;
 
     let divider_idx = filename_str.find("-").ok_or("file name does not \
         contain \"-\" separator")?;
