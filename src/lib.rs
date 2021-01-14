@@ -77,15 +77,17 @@ fn remove_artist_name_from_file_name(
     let song_name = &filename_str[(divider_idx + 2)..];
     // Guaranteed to be fine since we've already unwrapped this path's file
     // stem.
-    let path_parent_str = match filepath.parent().unwrap().to_str() {
-        Some(result) => result,
-        // TODO: this isn't such a user-friendly error message....
-        None => return Err("failed to convert file path parent into string"),
-    };
+    //
+    // TODO: this isn't such a user-friendly error message....
+    let path_parent_str = filepath.parent()
+                                  .unwrap()
+                                  .to_str()
+                                  .ok_or("failed to convert file path parent \
+                                         into string")?;
     // TODO: fix hard-coded file extension (even tho this program can only work
     // mp3s).
-    let path_without_artist_str = path_parent_str.to_owned() + "/"
-        + song_name + ".mp3";
+    let path_without_artist_str = path_parent_str.to_owned() + "/" + song_name
+        + ".mp3";
     let path_without_artist = Path::new(&path_without_artist_str);
 
     if let Err(_) = fs::rename(filepath_str, path_without_artist) {
